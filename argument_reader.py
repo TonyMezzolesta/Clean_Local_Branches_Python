@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 
+
 class PruneArgumentReader(ArgumentParser):
     def __init__(self):
         super().__init__(

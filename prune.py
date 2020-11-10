@@ -15,18 +15,18 @@ if directory is not None:
 if dry_run:
     print("Running dry run.")
 
-#prune branches first
+# Prune branches first
 subprocess.run(["git", "remote", "update", "--prune"])
 
-localbranches = subprocess.check_output(["git", "branch"])
+local_branches = subprocess.check_output(["git", "branch"])
 
 leftover_branches = []
 newline_separator = ",\n"
 
-each_branch = localbranches.splitlines()
+each_branch = local_branches.splitlines()
 # Loop though local branches
-for lineLocal in each_branch:
-    current = lineLocal.decode('utf-8')
+for line_local in each_branch:
+    current = line_local.decode('utf-8')
 
     if current[:1] == "*":
         print(f"Skipped current branch: '{current}'")
@@ -41,10 +41,10 @@ for lineLocal in each_branch:
         continue
 
     # Check remote repo to see if branch exists
-    remoteBranch = subprocess.check_output(["git", "ls-remote", "--heads", "origin", current])
+    remote_branch = subprocess.check_output(["git", "ls-remote", "--heads", "origin", current])
 
     # Remove it from local if it does not exist on remote
-    if not remoteBranch:
+    if not remote_branch:
         if dry_run:
             print(f"(Dry-Run) Removing branch: '{current}'")
         else:
