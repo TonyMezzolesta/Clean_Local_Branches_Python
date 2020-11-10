@@ -2,38 +2,63 @@ import subprocess
 import sys
 import os
 
-#sys.argv[0] = script location
-#sys.argv[1] = working directory (optional)
-if len(sys.argv) >= 2:
-    print(sys.argv[1])
-    os.chdir(sys.argv[1])
+from argument_reader import PruneArgumentReader
+
+
+parser = PruneArgumentReader()
+directory, dry_run = parser.get_parsed()
+
+if directory is not None:
+    print(directory)
+    os.chdir(directory)
+
+if dry_run:
+    print("Running dry run.")
 
 #prune branches first
 subprocess.run(["git", "remote", "update", "--prune"])
 
 localbranches = subprocess.check_output(["git", "branch"])
-#remotebranches = subprocess.check_output(["git", "branch", "-r"])
 
-#loop though local branches
-for lineLocal in localbranches.splitlines():
-    #skip the current branch you are sitting on
-    if lineLocal[:1].decode('utf-8') == "*":
-        #on current branch, dont delete it
-        print("skipping current branch")
+leftover_branches = []
+newline_separator = ",\n"
+
+each_branch = localbranches.splitlines()
+# Loop though local branches
+for lineLocal in each_branch:
+    current = lineLocal.decode('utf-8')
+
+    if current[:1] == "*":
+        print(f"Skipped current branch: '{current}'")
+        leftover_branches.append(current)
         continue
 
-    #skip master branch
-    if "master" in lineLocal.decode('utf-8'):
-        print("skipping local master branch")
+    current = current[2:]  # Remove spacing used for markings
+
+    # Skip master branch
+    if "master" in current:
+        leftover_branches.append(current)
         continue
 
-    #check remote repo to see if branch exists
-    remoteBranch = subprocess.check_output(["git", "ls-remote", "--heads", "origin", lineLocal[2:].decode('utf-8')])
+    # Check remote repo to see if branch exists
+    remoteBranch = subprocess.check_output(["git", "ls-remote", "--heads", "origin", current])
 
-    #remove it from local if it does not exist on remote
+    # Remove it from local if it does not exist on remote
     if not remoteBranch:
-        print(lineLocal.decode('utf-8'))
-        subprocess.run(["git", "branch", "-D", lineLocal[2:].decode('utf-8')])
+        if dry_run:
+            print(f"(Dry-Run) Removing branch: '{current}'")
+        else:
+            print(f"Removing branch: '{current}'")
+            subprocess.run(["git", "branch", "-D", current])
         continue
+    else:
+        leftover_branches.append(current)
 
-print("completed process")
+print(f"""
+-------------------------
+    process completed
+-------------------------
+
+Started with {len(each_branch)} branches. Remaining {len(leftover_branches)} branches: 
+{newline_separator.join(leftover_branches)}
+""")
