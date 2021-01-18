@@ -22,9 +22,9 @@ for lineLocal in localbranches.splitlines():
         print("skipping current branch")
         continue
 
-    #skip master branch
-    if "master" in lineLocal.decode('utf-8'):
-        print("skipping local master branch")
+    #skip main branch
+    if "main" in lineLocal.decode('utf-8'):
+        print("skipping local main branch")
         continue
 
     #check remote repo to see if branch exists
