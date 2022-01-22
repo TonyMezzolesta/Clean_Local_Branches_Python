@@ -35,8 +35,8 @@ for line_local in each_branch:
 
     current = current[2:]  # Remove spacing used for markings
 
-    # Skip master branch
-    if "master" in current:
+    # Skip master/main branch
+    if current in ["master", "main"]:
         leftover_branches.append(current)
         continue
 
